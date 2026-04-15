@@ -29,9 +29,8 @@ void Line::draw(sf::RenderWindow& window) const {
     window.draw(line, 2, sf::Lines);
 }
 
-// Méthode statique : parcours en largeur (BFS) pour récupérer tous les MPoints connectés.
-// - 'start' : MPoint de départ (doit être non-null)
-// - 'alreadyGet' : ligne à ignorer (peut être nullptr)
+// Implémentation BFS pour récupérer tous les MPoints reliés au point de départ.
+// On itère sur cur->getLines() qui retourne des Object* ; on cast dynamiquement en Line*.
 std::vector<MPoint*> Line::getAllRelatedMPoints(MPoint* start, Line* alreadyGet) {
     std::vector<MPoint*> relatedMPoints;
     if (start == nullptr) return relatedMPoints;
@@ -39,7 +38,6 @@ std::vector<MPoint*> Line::getAllRelatedMPoints(MPoint* start, Line* alreadyGet)
     std::queue<MPoint*> q;
     std::unordered_set<MPoint*> visited;
 
-    // Démarrage
     q.push(start);
     visited.insert(start);
 
@@ -47,24 +45,28 @@ std::vector<MPoint*> Line::getAllRelatedMPoints(MPoint* start, Line* alreadyGet)
         MPoint* cur = q.front();
         q.pop();
         relatedMPoints.push_back(cur);
-    
-        // On parcourt les lignes connectées au MPoint courant.
-        /*for (Line* l : cur->getLines()) { // on suppose MPoint::getLines() retourne std::vector<Line*>
-            if (l == alreadyGet) continue;
-            // On parcourt les MPoints de la ligne et on ajoute ceux non visités.
-            for (MPoint* p : l->getMPoints()) { // on suppose Line::getMPoints() retourne std::vector<MPoint*>
+
+        // Parcours des lignes (stockées comme Object*) attachées au MPoint courant
+        for (Object* objLine : cur->getLines()) {
+            Line* l = dynamic_cast<Line*>(objLine);
+            if (!l) continue;              // ce n'est pas une Line
+            if (l == alreadyGet) continue; // ignorer la ligne fournie si nécessaire
+
+            // Pour chaque MPoint connecté par la ligne, l'ajouter si non visité.
+            for (MPoint* p : l->getMPoints()) {
+                if (!p) continue;
                 if (visited.find(p) == visited.end()) {
                     visited.insert(p);
                     q.push(p);
                 }
             }
-        }*/
+        }
     }
 
     return relatedMPoints;
 }
 
-void Line::update(float deltaTime, std::vector<Object> dependancies) {
+void Line::update(float deltaTime, std::vector<Object*> dependancies) {
     // Appel à la logique de base (position/vitesse) puis synchronisation des extrémités.
     Object::update(deltaTime, dependancies);
     position = _MPoint1->getPosition();

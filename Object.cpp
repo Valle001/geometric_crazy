@@ -10,7 +10,8 @@ Object::Object(sf::Vector2f pos, sf::Color c, bool movable)
 
 // On garde la signature par valeur et on ajoute un comportement sûr pour le cas "sans dépendances".
 // Utilisation de empty() pour clarifier l'intention (équivalent à la comparaison avec un vecteur vide).
-void Object::update(float deltaTime, std::vector<Object> dependancies) {
+void Object::update(float deltaTime, std::vector<Object*> dependancies) {
+    // Si des dépendances sont fournies, on applique la logique de mouvement habituelle.
     if (!dependancies.empty()) {
         if (isMovable) {
             vitesse += acceleration * deltaTime;
@@ -19,18 +20,19 @@ void Object::update(float deltaTime, std::vector<Object> dependancies) {
         }
     }
     else {
+        // Sinon on calcule une "accélération moyenne" basée sur les dépendances (logique existante).
         sf::Vector2f accelerationMoy(acceleration);
         int length(1);
 
-        for (auto& i: dependancies) {
-            accelerationMoy += i.acceleration;
+        for (auto* i: dependancies) {
+            if (i) accelerationMoy += i->acceleration; // accès via pointeur
             length ++;
         }
-        accelerationMoy.x /= length;
-        accelerationMoy.y /= length;
+        accelerationMoy.x /= static_cast<float>(length);
+        accelerationMoy.y /= static_cast<float>(length);
 
-        for (auto& i: dependancies) {
-            i.acceleration = accelerationMoy;
+        for (auto* i: dependancies) {
+            if (i) i->acceleration = accelerationMoy; // mise à jour via pointeur
         }
     }
 }

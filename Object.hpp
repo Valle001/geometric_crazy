@@ -16,10 +16,9 @@ public:
     Object(float x, float y, sf::Color c = sf::Color::White, bool movable = true);
     Object(sf::Vector2f pos, sf::Color c = sf::Color::White, bool movable = true);
     virtual ~Object() = default;
-    // Ajout d'un paramètre par défaut pour permettre les appels sans dépendances.
-    // On garde le passage par valeur (comme dans la version originale) pour éviter
-    // d'introduire des incompatibilités avec le reste du code.
-    virtual void update(float deltaTime, std::vector<Object> dependancies = std::vector<Object>());
+    // Changement critique : on ne peut pas stocker des instances d'une classe abstraite (Object)
+    // dans std::vector<Object>. On utilise donc des pointeurs vers Object pour les dépendances.
+    virtual void update(float deltaTime, std::vector<Object*> dependancies = std::vector<Object*>());
     virtual void draw(sf::RenderWindow& window) const = 0;
 
     void applyForce(const sf::Vector2f& force);

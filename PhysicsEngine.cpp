@@ -50,7 +50,3 @@ void PhysicsEngine::updateLines(std::vector<Line>& objects, float deltaTime)
     }
 }
 
-void PhysicsEngine::greatLines(Line& object, float deltaTime) 
-{
-
-}

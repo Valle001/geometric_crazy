@@ -1,1 +1,3 @@
 *.o
+app0
+.gitignore
